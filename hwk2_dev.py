@@ -48,8 +48,8 @@ def fwd(sequence, trans_p, emission_p, beg_state):
             trans_p10 = math.log((emission_p[0,base])*(trans_p[1,0])) 
             #A/T in GC trans_p prob
             trans_p01 = math.log((emission_p[1,base])*(trans_p[0,1])) 
-            
-            trans_p11 = math.log((emission_p[1,base])*(trans_p[1,1])) #GorC in GC trans_pition prob
+            #G/C in GC trans_p prob
+            trans_p11 = math.log((emission_p[1,base])*(trans_p[1,1])) 
             
             fwd_matrix[x,0]=maxProb+math.log(math.exp(-maxProb+prev_AT+trans_p00)+math.exp(-maxProb + prev_GC+trans_p10))
             fwd_matrix[x,1]=maxProb+math.log(math.exp(-maxProb+prev_AT+trans_p01)+math.exp(-maxProb + prev_GC+trans_p11))
