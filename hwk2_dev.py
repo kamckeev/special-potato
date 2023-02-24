@@ -11,10 +11,7 @@ import numpy as np
 import_file=open('hwk2_sequence.txt', 'r')
 lines=import_file.readlines()
 
-#lines = [line.strip() for line in lines]
-
-for line in lines:
-    line = line.strip()
+lines = [line.strip() for line in lines]
 sequence = ''.join(lines)
 
 import_file.close()
@@ -66,22 +63,61 @@ def fwd_alg(sequence, trans_p, emission_p, beg_state):
             final_AT = fwd_matrix[lenseq-1, 0] 
             final_GC= fwd_matrix[lenseq-1, 1]
     final_prob=final_AT+math.log(1+(math.exp(final_GC-final_AT)))
-    print("The log-likelihood is",final_prob)
+    return(f"The log-likelihood is {final_prob}")
 #%%
-#1
+"""
+A sequence of length 1200 was generated with a hidden Markov model that allowed
+some regions to be GC-rich and some regions to be  AT-rich.  The model used to 
+generate the data was very similar to the one that we studied in class...
+
+Position 1 in the sequence was forced to be in a AT-rich region.
+
+Thereafter, the probability that position i+1 was in a GC-rich region given 
+that position i was in a GC-rich region was set to 0.95. The probability that
+position i+1 was in an AT-rich region given that position i was in an AT-rich
+region was set to 0.98.
+
+In GC-rich regions, the probabilities of G and C occupying sites were each 0.3 
+whereas the probabilities of A and T in these GC-rich regions were each 0.2.
+
+In AT-rich regions, the probabilities of A and T occupying sites were each 0.3 
+whereas the probabilities of G and C in these AT-rich regions were each 0.2.
+"""
 beg_state=np.array((1,0))
 emission_p=np.array(((0.3,0.3,0.2,0.2), (0.2,0.2,0.3,0.3)))
 trans_p=np.array(((0.98, 0.02), (0.05, 0.95)))
-print(trans_p)
-print("#1")
-fwd_alg(sequence, trans_p, emission_p, beg_state)
 #%%
-#2
+"""
+1.  Implement the forward algorithm to calculate the logarithm of the 
+probability of observing this sequence given the model.  When calculating this 
+log-likelihood, do it for the true values of the parameters that are listed above.
+What log-likelihood value results?
+"""
+
+#print(trans_p)
+print(f"#1: {fwd_alg(sequence, trans_p, emission_p, beg_state)}")
+#%%
+"""
+2.  Implement the forward algorithm again to analyze the same data set.  
+But, this time use the true values of the parameters except 0.5 should be the
+probability that position i+1 was in a GC-rich region given that position i 
+was in a GC-rich region and 0.8 should be the probability that position i+1 was
+in an AT-rich region given that position i was in an AT-rich region.  What 
+value of the log-likelihood results?
+"""
 trans_p=np.array(((0.8, 0.2), (0.5, 0.5)))
-print("#2")
-fwd_alg(sequence, trans_p, emission_p, beg_state)
+print(f"#2: {fwd_alg(sequence, trans_p, emission_p, beg_state)}")
 #%%
-#3
+"""
+3. Implement the forward algorithm again to analyze the same data set.  
+But, this time use the true values of the parameters except 0.51 should be the 
+probability that position i+1 was in a GC-rich region given that position i 
+was in a GC-rich region and 0.51 should be the probability that position i+1 
+was in an AT-rich region given that position i was in an AT-rich region.  
+What value of the log-likelihood results?
+"""
 trans_p=np.array(((0.51, 0.49), (0.51, 0.49)))
-print("#3")
-fwd_alg(sequence, trans_p, emission_p, beg_state)
+print(f"#3: {fwd_alg(sequence, trans_p, emission_p, beg_state)}")
+#%%
+#4
+
