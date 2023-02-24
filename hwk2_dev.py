@@ -63,8 +63,9 @@ def fwd_alg(sequence, trans_p, emission_p, beg_state):
             
             final_AT = fwd_matrix[lenseq-1, 0] 
             final_GC= fwd_matrix[lenseq-1, 1]
-    final_prob=final_AT+math.log(1+(math.exp(final_GC-final_AT)))
-    return(f"The log-likelihood is {final_prob}")
+    final_p=final_AT+math.log(1+(math.exp(final_GC-final_AT)))
+    #return(f"The log-likelihood is {final_p}")
+    return(final_p)
 #%%
 """
 A sequence of length 1200 was generated with a hidden Markov model that allowed
@@ -177,7 +178,7 @@ def viterbi_alg(sequence, trans_p, emision_p, beg_state):
     #Ending GC rich
     else:
         state = 1 
-    return(f"The resulting log-likelihood value is {max_p}")
+    
 
 #traceback pathway
     final_path = [state] #Start with whatever the last state was
@@ -185,8 +186,9 @@ def viterbi_alg(sequence, trans_p, emision_p, beg_state):
         add = int(path_matrix[lenseq-j-2, state]) 
         final_path.insert(0, add) 
         state = int(path_matrix[lenseq-j-2, state])
-    print(str(final_path))
- 
+
+    return f"The resulting log-likelihood value is {max_p}\r \
+This is the final path:\n {str(final_path)}" 
 #%%
 """
 4.  For the parameters values listed in Question 1, implement the Viterbi 
@@ -206,7 +208,7 @@ in Question 2.  In a few sentences, try to explain why the reconstructed path
 from this question differs from the path reconstructed for Question 4.
 """
 trans_p=np.array(((0.8, 0.2), (0.5, 0.5)))
-print(f"#5: {viterbi_alg(sequence, trans_p, emission_p, beg_state)}\n")
+print(f"#5: {viterbi_alg(sequence, trans_p, emission_p, beg_state)}\r")
 print("This reconstructed path is different from the path in #4 \
 because we used different tranistion probabilities.\nnew sentence.\
           \nnew sentence")
@@ -217,7 +219,7 @@ in Question 3.  In a few sentences, try to explain why the reconstructed path
 from this question differs from the path reconstructed for Question 4.
 """
 trans_p=np.array(((0.51, 0.49), (0.51, 0.49)))
-print(f"#6: {viterbi_alg(sequence, trans_p, emission_p, beg_state)}\n")
+print(f"#6: {viterbi_alg(sequence, trans_p, emission_p, beg_state)}\r")
 print("This reconstructed path is different from the path in #4 \
 because we used different tranistion probabilities.\nnew sentence.\
           \nnew sentence")
