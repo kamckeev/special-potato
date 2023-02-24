@@ -33,11 +33,12 @@ def fwd_alg(sequence, trans_p, emission_p, beg_state):
             base = 3    
         if i == 0: #Use iniital probabilities
             fwd_matrix[0,0] = math.log((beg_state[0]*emission_p[0,base]))
-            fwd_matrix[0,1] = -1000000000000000000
+            #fwd_matrix[0,1] = 0.0000000000000000000000001
+            fwd_matrix[0,1] = -1000000000000000000000000
         else:
             prev_AT = fwd_matrix[i-1,0] #Previous probability in AT region
             prev_GC = fwd_matrix[i-1,1] #Previous probability in GC region
-            maxProb = max(prev_AT, prev_GC)
+            max_p = max(prev_AT, prev_GC)
 
             #A/T in AT trans_p prob 
             trans_p00 = math.log((emission_p[0,base])*(trans_p[0,0])) 
@@ -51,13 +52,13 @@ def fwd_alg(sequence, trans_p, emission_p, beg_state):
             #G/C in GC trans_p prob
             trans_p11 = math.log((emission_p[1,base])*(trans_p[1,1])) 
             
-            fwd_matrix[i,0]=maxProb+math.log(math.exp(-maxProb+prev_AT
+            fwd_matrix[i,0]=max_p+math.log(math.exp(-max_p+prev_AT
                                                       +trans_p00)
-                                             +math.exp(-maxProb 
+                                             +math.exp(-max_p 
                                                        + prev_GC+trans_p10))
-            fwd_matrix[i,1]=maxProb+math.log(math.exp(-maxProb
+            fwd_matrix[i,1]=max_p+math.log(math.exp(-max_p
                                                       +prev_AT+trans_p01)
-                                             +math.exp(-maxProb 
+                                             +math.exp(-max_p 
                                                        + prev_GC+trans_p11))
             
             final_AT = fwd_matrix[lenseq-1, 0] 
@@ -119,5 +120,109 @@ What value of the log-likelihood results?
 trans_p=np.array(((0.51, 0.49), (0.51, 0.49)))
 print(f"#3: {fwd_alg(sequence, trans_p, emission_p, beg_state)}")
 #%%
-#4
+def viterbi_alg(sequence, trans_p, emision_p, beg_state):
+    v_matrix = np.zeros((lenseq, states)) #initialize prob matrix with zeros
+    path_matrix = np.zeros((lenseq, states)) #initialize path matrix with zeros
+    for i in range(lenseq):
+        if sequence[i] == 'A':
+            base = 0
+        elif sequence[i] == 'T':
+            base = 1
+        elif sequence[i] == 'G':
+            base = 2
+        elif sequence[i] == 'C':
+            base = 3
+            
+        v_matrix[0,0] = math.log((beg_state[0]*emission_p[0,base])) #prob =(inital)*(emission)
+        #trying negative number
+        v_matrix[0,1] = -1000000000000000000000000000000000
+        #trying really small number
+        #v_matrix[0,1] = 0.0000000000000000000000000000000001
+        
+        prev_AT = v_matrix[i-1,0]
+        prev_GC = v_matrix[i-1,1]
+
+        trans00 = prev_AT+math.log(emission_p[0,base])+math.log(trans_p[0,0]) 
+        trans10 = prev_GC+math.log(emission_p[0,base])+math.log(trans_p[1,0]) 
+        trans01 = prev_AT+math.log(emission_p[1,base])+math.log(trans_p[0,1])
+        trans11 = prev_GC+math.log(emission_p[1,base])+math.log(trans_p[1,1]) 
+
+        #Switch to GC
+        if trans00 < trans10: 
+            path_matrix[i,0] = 1 
+            v_matrix[i,0] = trans10 
+            
+        #Stay in AT
+        else: 
+            path_matrix[i,0] = 0 
+            v_matrix[i,0] = trans00 
+            
+        #Switch to AT    
+        if trans01 > trans11: 
+            path_matrix[i,1] = 0 
+            v_matrix[i,1] = trans01 
+            
+        else: #Stay in GC
+            path_matrix[i,1] = 1 
+            v_matrix[i,1] = trans11  
+            
+    if v_matrix[lenseq-1,0] > v_matrix[lenseq-1,1]:
+        max_p = (v_matrix[lenseq-1,0]) 
+    else:
+        max_p = (v_matrix[lenseq-1,1]) 
+    
+    #Ending AT rich
+    if v_matrix[lenseq-1,0] > v_matrix[lenseq-1,1]:
+        state = 0  
+    #Ending GC rich
+    else:
+        state = 1 
+    return(f"The resulting log-likelihood value is {max_p}")
+
+#traceback pathway
+    final_path = [state] #Start with whatever the last state was
+    for j in range (lenseq-2): 
+        add = int(path_matrix[lenseq-j-2, state]) 
+        final_path.insert(0, add) 
+        state = int(path_matrix[lenseq-j-2, state])
+    print(str(final_path))
+ 
+#%%
+"""
+4.  For the parameters values listed in Question 1, implement the Viterbi 
+algorithm to analyze the simulated sequence data.  The implementation should 
+report the most probable path of AT-rich and GC-rich states through the hidden
+Markov model.  It should also report the logarithm of the probability of 
+generating the sequence data with this specific path.
+"""
+trans_p=np.array(((0.98, 0.02), (0.05, 0.95)))
+print("For the following questions, 0 indicates an AT rich state and \
+      1 indicates a GC rich state\n")
+print(f"#5: {viterbi_alg(sequence, trans_p, emission_p, beg_state)}")
+#%%
+"""
+5.  Answer Question 4 again except now use the parameter values that were used 
+in Question 2.  In a few sentences, try to explain why the reconstructed path 
+from this question differs from the path reconstructed for Question 4.
+"""
+trans_p=np.array(((0.8, 0.2), (0.5, 0.5)))
+print(f"#5: {viterbi_alg(sequence, trans_p, emission_p, beg_state)}\n")
+print("This reconstructed path is different from the path in #4 \
+because we used different tranistion probabilities.\nnew sentence.\
+          \nnew sentence")
+#%%
+"""
+6.  Answer Question 4 again except now use the parameter values that were used 
+in Question 3.  In a few sentences, try to explain why the reconstructed path 
+from this question differs from the path reconstructed for Question 4.
+"""
+trans_p=np.array(((0.51, 0.49), (0.51, 0.49)))
+print(f"#6: {viterbi_alg(sequence, trans_p, emission_p, beg_state)}\n")
+print("This reconstructed path is different from the path in #4 \
+because we used different tranistion probabilities.\nnew sentence.\
+          \nnew sentence")
+
+
+
+
 
