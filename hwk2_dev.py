@@ -5,6 +5,7 @@ Created on Sat Feb 18 15:37:44 2023
 @author: jmcco
 """
 import math
+import pandas as pd
 import numpy as np
 #%%
 """ Importing sequence files"""
@@ -15,6 +16,11 @@ lines = [line.strip() for line in lines]
 sequence = ''.join(lines)
 
 import_file.close()
+#%%
+trans_p1=trans_p4=np.array(((0.98, 0.02), (0.05, 0.95)))
+trans_p2=trans_p5=np.array(((0.8, 0.2), (0.5, 0.5)))
+trans_p3=trans_p6=np.array(((0.51, 0.49), (0.51, 0.49)))
+#trans_p7=trans_p8=np.array(((0.5,0.5),(0.2,0.8)))
 #%%
 #Forward Algorithm
 lenseq=len(sequence)
@@ -33,8 +39,9 @@ def fwd_alg(sequence, trans_p, emission_p, beg_state):
             base = 3    
         if i == 0: #Use iniital probabilities
             fwd_matrix[0,0] = math.log((beg_state[0]*emission_p[0,base]))
-            #fwd_matrix[0,1] = 0.0000000000000000000000001
-            fwd_matrix[0,1] = -1000000000000000000000000
+            #fwd_matrix[0,1] = -10000000000000000
+            fwd_matrix[0,1] = math.log((beg_state[1]*emission_p[0,base]))
+            #fwd_matrix[0,1] = 0
         else:
             prev_AT = fwd_matrix[i-1,0] #Previous probability in AT region
             prev_GC = fwd_matrix[i-1,1] #Previous probability in GC region
@@ -64,8 +71,8 @@ def fwd_alg(sequence, trans_p, emission_p, beg_state):
             final_AT = fwd_matrix[lenseq-1, 0] 
             final_GC= fwd_matrix[lenseq-1, 1]
     final_p=final_AT+math.log(1+(math.exp(final_GC-final_AT)))
-    #return(f"The log-likelihood is {final_p}")
-    return(final_p)
+    return(f"The log-likelihood is {final_p}")
+    #return(final_p)
 #%%
 """
 A sequence of length 1200 was generated with a hidden Markov model that allowed
@@ -85,9 +92,17 @@ whereas the probabilities of A and T in these GC-rich regions were each 0.2.
 In AT-rich regions, the probabilities of A and T occupying sites were each 0.3 
 whereas the probabilities of G and C in these AT-rich regions were each 0.2.
 """
-beg_state=np.array((1,0))
+#foward matirx is overrideing the array becasue otherwise this would throw error
+#can either override it or give a smaller p
+#beg_state=np.array((1,0))
+
+#We already know we are going have AT rich
+#this is the input into the fwd_alg function
+p_GC=0.00000000000000000000000001
+beg_state= np.array([1-p_GC,p_GC])
+
 emission_p=np.array(((0.3,0.3,0.2,0.2), (0.2,0.2,0.3,0.3)))
-trans_p=np.array(((0.98, 0.02), (0.05, 0.95)))
+
 #%%
 """
 1.  Implement the forward algorithm to calculate the logarithm of the 
@@ -95,9 +110,10 @@ probability of observing this sequence given the model.  When calculating this
 log-likelihood, do it for the true values of the parameters that are listed above.
 What log-likelihood value results?
 """
-
 #print(trans_p)
-print(f"#1: {fwd_alg(sequence, trans_p, emission_p, beg_state)}")
+#print(f"#1: {fwd_alg(sequence, trans_p, emission_p, beg_state)}")
+q1_p=f"#1: {fwd_alg(sequence, trans_p1, emission_p, beg_state)}"
+print(q1_p)
 #%%
 """
 2.  Implement the forward algorithm again to analyze the same data set.  
@@ -107,8 +123,8 @@ was in a GC-rich region and 0.8 should be the probability that position i+1 was
 in an AT-rich region given that position i was in an AT-rich region.  What 
 value of the log-likelihood results?
 """
-trans_p=np.array(((0.8, 0.2), (0.5, 0.5)))
-print(f"#2: {fwd_alg(sequence, trans_p, emission_p, beg_state)}")
+q2_p=f"#2: {fwd_alg(sequence, trans_p2, emission_p, beg_state)}"
+print(q2_p)
 #%%
 """
 3. Implement the forward algorithm again to analyze the same data set.  
@@ -118,8 +134,12 @@ was in a GC-rich region and 0.51 should be the probability that position i+1
 was in an AT-rich region given that position i was in an AT-rich region.  
 What value of the log-likelihood results?
 """
-trans_p=np.array(((0.51, 0.49), (0.51, 0.49)))
-print(f"#3: {fwd_alg(sequence, trans_p, emission_p, beg_state)}")
+
+q3_p=f"#3: {fwd_alg(sequence, trans_p3, emission_p, beg_state)}"
+print(q3_p)
+#%%
+#q7_p=f'bonus:{fwd_alg(sequence, trans_p7, emission_p, beg_state)}'
+#q8_p=f'bonus: {fwd_alg(sequence, trans_p8, emission_p, beg_state)}'
 #%%
 def viterbi_alg(sequence, trans_p, emision_p, beg_state):
     v_matrix = np.zeros((lenseq, states)) #initialize prob matrix with zeros
@@ -135,10 +155,10 @@ def viterbi_alg(sequence, trans_p, emision_p, beg_state):
             base = 3
             
         v_matrix[0,0] = math.log((beg_state[0]*emission_p[0,base])) #prob =(inital)*(emission)
-        #trying negative number
-        v_matrix[0,1] = -1000000000000000000000000000000000
-        #trying really small number
-        #v_matrix[0,1] = 0.0000000000000000000000000000000001
+        #trying negative number = log of small number
+        #v_matrix[0,1] = -1000000000000000000000000000000000
+        #trying really small number from beg_state
+        v_matrix[0,1] = math.log((beg_state[1]*emission_p[0,base]))
         
         prev_AT = v_matrix[i-1,0]
         prev_GC = v_matrix[i-1,1]
@@ -187,7 +207,7 @@ def viterbi_alg(sequence, trans_p, emision_p, beg_state):
         final_path.insert(0, add) 
         state = int(path_matrix[lenseq-j-2, state])
 
-    return f"The resulting log-likelihood value is {max_p}\r \
+    return f"The resulting log-likelihood value is {max_p}\n\n\
 This is the final path:\n {str(final_path)}" 
 #%%
 """
@@ -197,34 +217,56 @@ report the most probable path of AT-rich and GC-rich states through the hidden
 Markov model.  It should also report the logarithm of the probability of 
 generating the sequence data with this specific path.
 """
-trans_p=np.array(((0.98, 0.02), (0.05, 0.95)))
-print("For the following questions, 0 indicates an AT rich state and \
+print("For the following questions:\n \
+      0 indicates an AT rich state and\n \
       1 indicates a GC rich state\n")
-print(f"#5: {viterbi_alg(sequence, trans_p, emission_p, beg_state)}")
+q4_p=f"#4: {viterbi_alg(sequence, trans_p4, emission_p, beg_state)}"
+print(q4_p)
 #%%
 """
 5.  Answer Question 4 again except now use the parameter values that were used 
 in Question 2.  In a few sentences, try to explain why the reconstructed path 
 from this question differs from the path reconstructed for Question 4.
 """
-trans_p=np.array(((0.8, 0.2), (0.5, 0.5)))
-print(f"#5: {viterbi_alg(sequence, trans_p, emission_p, beg_state)}\r")
-print("This reconstructed path is different from the path in #4 \
-because we used different tranistion probabilities.\nnew sentence.\
-          \nnew sentence")
+q5_p=f"#5: {viterbi_alg(sequence, trans_p5, emission_p, beg_state)}\r"
+print(q5_p)
+print("This reconstructed path is different from the path in #4 because we\n\
+used different tranistion probabilities.In #4, we assumed that once we were\n\
+in either an AT or GC righ region, we would stay in that region for a while,\n\
+as evidenced by the output final path of #4. In #5, we gave transitional\n\
+probabilities that said if we were in an AT rich region we would stay there,\n\
+but the odds of staying or leaving a GC rich region were random. from the\n\
+output, we can see the path was in an AT rich region the entire time.\n")
 #%%
 """
 6.  Answer Question 4 again except now use the parameter values that were used 
 in Question 3.  In a few sentences, try to explain why the reconstructed path 
 from this question differs from the path reconstructed for Question 4.
 """
-trans_p=np.array(((0.51, 0.49), (0.51, 0.49)))
-print(f"#6: {viterbi_alg(sequence, trans_p, emission_p, beg_state)}\r")
-print("This reconstructed path is different from the path in #4 \
-because we used different tranistion probabilities.\nnew sentence.\
-          \nnew sentence")
-
-
+q6_p=f"#6: {viterbi_alg(sequence, trans_p6, emission_p, beg_state)}\r"
+print(q6_p)
+print("This reconstructed path is different from the path in #4 because the\n\
+transitional probabilities for #6 implied leaving or staying in either a\n\
+AT rich or GC rich region was almost random. As seen in the final path, it\n\
+bounces from AT rich to GC rich regions very frequently. The log-liklihood\n\
+for this path is much lower than the log-liklihood for #4.\n\n"
+)
+#%%
+data= [[trans_p1,
+        f'q1_p=({round(float(q1_p[26:]),4)})',
+        f'q4_p=({round(float(q4_p[42:56]),4)})'],
+       [trans_p2,
+         f'q2_p=({round(float(q2_p[26:36]),4)})',
+         f'q5_p=({round(float(q5_p[42:56]),4)})'],
+         [trans_p3,
+          f'q3_p=({round(float(q3_p[26:36]),4)})',
+          f'q6_p=({round(float(q6_p[42:56]),4)})']
+       ]
+df= pd.DataFrame(data, columns= ['transitional probabilities',
+                                            'forward algorithm',
+                                            'viterbi algorithm'])
+print("Summary Table")
+print(df)
 
 
 
