@@ -49,44 +49,45 @@ def fwd_alg(sequence, trans_p, emission_p, beg_state):
             fwd_matrix[0,1] = math.log((beg_state[1]*emission_p[0,base]))
             #fwd_matrix[0,1] = 0
         else:
-            prev_AT = B= fwd_matrix[i-1,0] #Previous probability in AT region
-            prev_GC = D= fwd_matrix[i-1,1] #Previous probability in GC region
-            max_p = A= max(prev_AT, prev_GC)
+            prev_AT = B = fwd_matrix[i-1,0] #Previous probability in AT region
+            prev_GC = D = fwd_matrix[i-1,1] #Previous probability in GC region
+            max_p = A = max(prev_AT, prev_GC)
 
             #A/T in AT trans_p prob 
-            trans_p00 = C= math.log((emission_p[0,base])*(trans_p[0,0])) 
+            trans_p00 = C = math.log((emission_p[0,base])*(trans_p[0,0])) 
             
             #G/C in AT trans_p prob
-            trans_p10 =E = math.log((emission_p[0,base])*(trans_p[1,0])) 
+            trans_p10 = E = math.log((emission_p[0,base])*(trans_p[1,0])) 
             
             #A/T in GC trans_p prob
-            trans_p01 =F= math.log((emission_p[1,base])*(trans_p[0,1])) 
+            trans_p01 = F = math.log((emission_p[1,base])*(trans_p[0,1])) 
             
             #G/C in GC trans_p prob
-            trans_p11 =G= math.log((emission_p[1,base])*(trans_p[1,1])) 
+            trans_p11 = G = math.log((emission_p[1,base])*(trans_p[1,1])) 
             
-            #trying to fix floating point error
-            interim1 = math.exp(B+C-A)
-            interim2 = math.exp(D+E-A)
+            #trying to prevent floating point error
+            interim1 = B+C-A
+            interim2 = D+E-A
             
             #fwd_matrix[i,0]=max_p+math.log(math.exp(-max_p+prev_AT+trans_p00) +math.exp(-max_p + prev_GC+trans_p10))
-            fwd_matrix[i,0]=max_p+math.log(np.logaddexp(interim1, interim2)) 
+            fwd_matrix[i,0]=max_p+np.logaddexp(interim1, interim2)
             
-            interim3=math.exp(+B+F-A)
-            interim4=math.exp(D+G-A)
+            interim3=B+F-A
+            interim4=D+G-A
             
             #fwd_matrix[i,1]=max_p+math.log(math.exp(-max_p+prev_AT+trans_p01) +math.exp(-max_p + prev_GC+trans_p11))
-            fwd_matrix[i,1]=max_p+math.log(np.logaddexp(interim3, interim4))
+            fwd_matrix[i,1]=max_p+np.logaddexp(interim3, interim4)
 
             
             final_AT= H = fwd_matrix[lenseq-1, 0] 
             final_GC= I = fwd_matrix[lenseq-1, 1]
             
-            interim5=math.exp(I-H)
+            interim5=I-H
             #final_p=final_AT+math.log(1+(math.exp(final_GC-final_AT)))
-            final_p=H+math.log(1+interim5)
+            final_p=H+np.logaddexp(0,interim5)
     return(f"The log-likelihood is {final_p}")
     #return(final_p)
+    #return(fwd_matrix)
 #%%
 """
 A sequence of length 1200 was generated with a hidden Markov model that allowed
@@ -112,7 +113,7 @@ whereas the probabilities of G and C in these AT-rich regions were each 0.2.
 
 #We already know we are going have AT rich
 #this is the input into the fwd_alg function
-p_GC=0.00000000000000000000000001
+p_GC=0.00000000000000000000000000000000000000000000001
 beg_state= np.array([1-p_GC,p_GC])
 
 emission_p=np.array(((0.3,0.3,0.2,0.2), (0.2,0.2,0.3,0.3)))
