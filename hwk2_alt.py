@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 """
+Created on Mon Feb 27 18:41:02 2023
+
+@author: jmcco
+"""
+# -*- coding: utf-8 -*-
+"""
 Created on Sat Feb 18 15:37:44 2023
 
 @author: jmcco
@@ -59,12 +65,9 @@ def fwd_alg(sequence, trans_p, emission_p, beg_state):
             #G/C in GC trans_p prob
             trans_p11 = math.log((emission_p[1,base])*(trans_p[1,1])) 
             
-            fwd_matrix[i,0]=max_p+math.log(math.exp(-max_p+prev_AT+trans_p00)
-                                             +math.exp(-max_p + prev_GC+trans_p10))
-            fwd_matrix[i,1]=max_p+math.log(math.exp(-max_p
-                                                      +prev_AT+trans_p01)
-                                             +math.exp(-max_p 
-                                                       + prev_GC+trans_p11))
+            fwd_matrix[i,0]=np.logaddexp(max_p,np.logaddexp(math.exp(np.logaddexp(-max_p,np.logaddexp(prev_AT,trans_p00))),math.exp(np.logaddexp(-max_p,np.logaddexp(prev_GC,trans_p10)))))
+
+            fwd_matrix[i,1]=np.logaddexp(max_p,np.logaddexp(math.exp(np.logaddexp(-max_p,np.logaddexp(prev_AT,trans_p01))),math.exp(np.logaddexp(-max_p,np.logaddexp(prev_GC,trans_p11)))))
             
             final_AT = fwd_matrix[lenseq-1, 0] 
             final_GC= fwd_matrix[lenseq-1, 1]
