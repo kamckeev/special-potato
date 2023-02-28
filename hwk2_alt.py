@@ -49,29 +49,42 @@ def fwd_alg(sequence, trans_p, emission_p, beg_state):
             fwd_matrix[0,1] = math.log((beg_state[1]*emission_p[0,base]))
             #fwd_matrix[0,1] = 0
         else:
-            prev_AT = fwd_matrix[i-1,0] #Previous probability in AT region
-            prev_GC = fwd_matrix[i-1,1] #Previous probability in GC region
-            max_p = max(prev_AT, prev_GC)
+            prev_AT = B= fwd_matrix[i-1,0] #Previous probability in AT region
+            prev_GC = D= fwd_matrix[i-1,1] #Previous probability in GC region
+            max_p = A= max(prev_AT, prev_GC)
 
             #A/T in AT trans_p prob 
-            trans_p00 = math.log((emission_p[0,base])*(trans_p[0,0])) 
+            trans_p00 = C= math.log((emission_p[0,base])*(trans_p[0,0])) 
             
             #G/C in AT trans_p prob
-            trans_p10 = math.log((emission_p[0,base])*(trans_p[1,0])) 
+            trans_p10 =E = math.log((emission_p[0,base])*(trans_p[1,0])) 
             
             #A/T in GC trans_p prob
-            trans_p01 = math.log((emission_p[1,base])*(trans_p[0,1])) 
+            trans_p01 =F= math.log((emission_p[1,base])*(trans_p[0,1])) 
             
             #G/C in GC trans_p prob
-            trans_p11 = math.log((emission_p[1,base])*(trans_p[1,1])) 
+            trans_p11 =G= math.log((emission_p[1,base])*(trans_p[1,1])) 
             
-            fwd_matrix[i,0]=np.logaddexp(max_p,np.logaddexp(math.exp(np.logaddexp(-max_p,np.logaddexp(prev_AT,trans_p00))),math.exp(np.logaddexp(-max_p,np.logaddexp(prev_GC,trans_p10)))))
+            #trying to fix floating point error
+            interim1 = math.exp(B+C-A)
+            interim2 = math.exp(D+E-A)
+            
+            #fwd_matrix[i,0]=max_p+math.log(math.exp(-max_p+prev_AT+trans_p00) +math.exp(-max_p + prev_GC+trans_p10))
+            fwd_matrix[i,0]=max_p+math.log(np.logaddexp(interim1, interim2)) 
+            
+            interim3=math.exp(+B+F-A)
+            interim4=math.exp(D+G-A)
+            
+            #fwd_matrix[i,1]=max_p+math.log(math.exp(-max_p+prev_AT+trans_p01) +math.exp(-max_p + prev_GC+trans_p11))
+            fwd_matrix[i,1]=max_p+math.log(np.logaddexp(interim3, interim4))
 
-            fwd_matrix[i,1]=np.logaddexp(max_p,np.logaddexp(math.exp(np.logaddexp(-max_p,np.logaddexp(prev_AT,trans_p01))),math.exp(np.logaddexp(-max_p,np.logaddexp(prev_GC,trans_p11)))))
             
-            final_AT = fwd_matrix[lenseq-1, 0] 
-            final_GC= fwd_matrix[lenseq-1, 1]
-    final_p=final_AT+np.logaddexp(1,(math.exp(np.logaddexp(final_GC,-final_AT))))
+            final_AT= H = fwd_matrix[lenseq-1, 0] 
+            final_GC= I = fwd_matrix[lenseq-1, 1]
+            
+            interim5=math.exp(I-H)
+            #final_p=final_AT+math.log(1+(math.exp(final_GC-final_AT)))
+            final_p=H+math.log(1+interim5)
     return(f"The log-likelihood is {final_p}")
     #return(final_p)
 #%%
