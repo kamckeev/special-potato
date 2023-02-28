@@ -71,7 +71,7 @@ def fwd_alg(sequence, trans_p, emission_p, beg_state):
             
             final_AT = fwd_matrix[lenseq-1, 0] 
             final_GC= fwd_matrix[lenseq-1, 1]
-    final_p=final_AT+math.log(1+(math.exp(final_GC-final_AT)))
+    final_p=final_AT+np.logaddexp(1,(math.exp(np.logaddexp(final_GC,-final_AT))))
     return(f"The log-likelihood is {final_p}")
     #return(final_p)
 #%%
