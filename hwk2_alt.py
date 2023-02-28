@@ -262,7 +262,7 @@ q6_p=f"#6: {viterbi_alg(sequence, trans_p6, emission_p, beg_state)}\r"
 print(q6_p)
 print("This reconstructed path is different from the path in #4 because the\n\
 transitional probabilities for #6 implied leaving or staying in either a\n\
-AT rich or GC rich region was almost random. As seen in the final path, it\n\
+AT rich or GC rich region was almost equally likely, ergo switching is not penalized.. As seen in the final path, it\n\
 bounces from AT rich to GC rich regions very frequently. The log-liklihood\n\
 for this path is much lower than the log-liklihood for #4.\n\n"
 )
