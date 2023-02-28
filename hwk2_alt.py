@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Feb 27 18:41:02 2023
-
-@author: jmcco
-"""
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Sat Feb 18 15:37:44 2023
